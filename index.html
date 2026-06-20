@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e7fff8">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1513">
+  <title>Ish Contact</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/favicon.png" sizes="64x64">
+  <link rel="icon" href="assets/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-theme="teal" data-mode="auto">
+  <noscript>Diese App braucht JavaScript, weil Verschlüsselung und QR-Codes komplett lokal laufen.</noscript>
+
+  <main id="app" class="app-shell" aria-live="polite">
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-card glass-card">
+        <div class="login-avatar" id="loginAvatar" aria-hidden="true">DV</div>
+        <p class="eyebrow">Verschlüsselter Tresor</p>
+        <h1 id="authTitle">Digitale Visitenkarte</h1>
+        <p id="authHint" class="muted">Lade verschlüsselten Token…</p>
+
+        <form id="passwordLogin" class="stack hidden" autocomplete="current-password">
+          <label class="field">
+            <span>Master-Passwort</span>
+            <input id="masterPassword" type="password" autocomplete="current-password" inputmode="text" required>
+          </label>
+          <button class="btn primary" type="submit">Entsperren</button>
+        </form>
+
+        <form id="setupForm" class="stack hidden" autocomplete="off">
+          <div class="setup-grid" id="setupFields"></div>
+          <label class="field">
+            <span>Neues Master-Passwort</span>
+            <input id="setupPassword" type="password" autocomplete="new-password" minlength="8" required>
+          </label>
+          <label class="field">
+            <span>Server-Secret</span>
+            <input id="setupSecret" type="password" autocomplete="off" required>
+          </label>
+          <button class="btn primary" type="submit">Tresor verschlüsseln & speichern</button>
+        </form>
+
+        <div id="quickUnlock" class="quick-unlock hidden">
+          <button id="pinOpen" class="btn tonal" type="button">Mit PIN entsperren</button>
+          <button id="passkeyLogin" class="btn tonal" type="button">Mit Passkey entsperren</button>
+        </div>
+
+        <div id="pinPad" class="pin-pad hidden" aria-label="PIN-Pad">
+          <div class="pin-dots" id="pinDots" aria-hidden="true"></div>
+          <div class="pin-grid"></div>
+          <button id="pinCancel" class="btn ghost" type="button">Abbrechen</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="vaultScreen" class="vault hidden">
+      <header class="hero">
+        <div class="hero-actions">
+          <button id="shareBtn" class="icon-btn" type="button" aria-label="Aktuellen Reiter teilen">↗</button>
+          <button id="settingsBtn" class="icon-btn" type="button" aria-label="Einstellungen öffnen">⚙</button>
+        </div>
+        <div class="hero-content">
+          <div class="avatar-wrap" id="heroAvatarWrap"><img id="heroAvatar" alt="Profilbild" hidden><span id="heroInitials">DV</span></div>
+          <p class="eyebrow">Digitale Visitenkarte</p>
+          <h1 id="heroName">—</h1>
+          <p id="updatedAt" class="updated">Noch nicht gespeichert</p>
+        </div>
+      </header>
+
+      <section id="tabContent" class="content-card" tabindex="-1"></section>
+
+      <nav class="bottom-nav" aria-label="Hauptnavigation">
+        <button data-tab="privat" class="active" type="button"><span>👤</span><b>Privat</b></button>
+        <button data-tab="firma" type="button"><span>🏢</span><b>Firma</b></button>
+        <button data-tab="paypal" type="button"><span>💸</span><b>PayPal</b></button>
+        <button data-tab="bank" type="button"><span>🏦</span><b>Bank</b></button>
+      </nav>
+    </section>
+  </main>
+
+  <div id="qrOverlay" class="qr-overlay hidden" role="dialog" aria-modal="true" aria-label="QR-Code Vollbild">
+    <button id="qrClose" class="icon-btn close" type="button" aria-label="QR-Code schließen">×</button>
+    <div id="qrBig" class="qr-big"></div>
+  </div>
+
+  <section id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-scrim" data-close-sheet></div>
+    <div class="sheet-panel">
+      <div class="grabber"></div>
+      <h2 id="sheetTitle"></h2>
+      <div id="sheetBody"></div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
