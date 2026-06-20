@@ -64,7 +64,6 @@
     <section id="vaultScreen" class="vault hidden">
       <header class="hero">
         <div class="hero-actions">
-          <button id="shareBtn" class="icon-btn" type="button" aria-label="Aktuellen Reiter teilen">↗</button>
           <button id="settingsBtn" class="icon-btn" type="button" aria-label="Einstellungen öffnen">⚙</button>
         </div>
         <div class="hero-content">
@@ -76,6 +75,13 @@
       </header>
 
       <section id="tabContent" class="content-card" tabindex="-1"></section>
+
+      <button id="shareBtn" class="share-pill" type="button" aria-label="Aktuellen Bereich teilen">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 16.1c-1 0-1.9.5-2.4 1.2L8.9 13.7a3.2 3.2 0 0 0 0-3.4l6.7-3.6A3 3 0 1 0 15 5c0 .2 0 .4.1.6L8.3 9.2a3 3 0 1 0 0 5.6l6.8 3.6a3 3 0 1 0 2.9-2.3Z" />
+        </svg>
+        <b>Teilen</b>
+      </button>
 
       <nav class="bottom-nav" aria-label="Hauptnavigation">
         <button data-tab="privat" class="active" type="button"><span>👤</span><b>Privat</b></button>

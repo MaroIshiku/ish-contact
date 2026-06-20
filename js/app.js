@@ -197,15 +197,41 @@ function renderPaymentTab(root, kind) {
     <div class="chips">${AMOUNTS.map(v => `<button class="chip ${normalizeAmount(state.amount) === Number(v).toFixed(2) ? 'active' : ''}" data-amount="${v}" type="button">${v} €</button>`).join('')}</div>
     ${isPayPal ? '' : `<label class="field"><span>Verwendungszweck</span><input id="purposeInput" autocomplete="off" value="${esc(state.purpose)}" placeholder="Optional"></label>`}`;
   root.append(box);
-  $('#amountInput', box).addEventListener('input', e => { state.amount = e.target.value; sessionStorage.setItem('dv2.amount', state.amount); renderTab(); });
-  $$('.chip', box).forEach(chip => chip.addEventListener('click', () => { state.amount = Number(chip.dataset.amount).toFixed(2); sessionStorage.setItem('dv2.amount', state.amount); renderTab(); }));
-  $('#purposeInput', box)?.addEventListener('input', e => { state.purpose = e.target.value; sessionStorage.setItem('dv2.purpose', state.purpose); renderTab(); });
   const info = document.createElement('div');
   info.className = 'qr-caption';
+  const qrWrap = qrCard(payload, `${title} QR`, info);
+  root.append(qrWrap);
+  const refreshPreview = () => updatePaymentPreview(kind, box, qrWrap, info);
+  $('#amountInput', box).addEventListener('input', e => {
+    state.amount = e.target.value;
+    sessionStorage.setItem('dv2.amount', state.amount);
+  });
+  $('#amountInput', box).addEventListener('blur', refreshPreview);
+  $$('.chip', box).forEach(chip => chip.addEventListener('click', () => {
+    state.amount = Number(chip.dataset.amount).toFixed(2);
+    sessionStorage.setItem('dv2.amount', state.amount);
+    $('#amountInput', box).value = state.amount;
+    refreshPreview();
+  }));
+  $('#purposeInput', box)?.addEventListener('input', e => {
+    state.purpose = e.target.value;
+    sessionStorage.setItem('dv2.purpose', state.purpose);
+  });
+  $('#purposeInput', box)?.addEventListener('blur', refreshPreview);
+  refreshPreview();
+}
+
+function updatePaymentPreview(kind, box, qrWrap, info) {
+  const isPayPal = kind === 'paypal';
+  const payload = isPayPal ? QrPayload.paypal(state.data, state.amount) : QrPayload.girocode(state.data, state.amount, state.purpose);
+  const link = QrPayload.paypal(state.data, state.amount);
+  $$('.chip', box).forEach(chip => chip.classList.toggle('active', normalizeAmount(state.amount) === Number(chip.dataset.amount).toFixed(2)));
+  const target = $('.qr-target', qrWrap);
+  target.dataset.payload = payload;
+  renderQr(target, payload, { size: 512 });
   info.innerHTML = isPayPal
     ? `<b>Empfänger:</b> ${esc(state.data.n || '—')}<br><span class="link-line">${esc(link)}</span>`
     : `<b>Empfänger:</b> ${esc(state.data.n || '—')}<br><b>IBAN:</b> ${esc(formatIban(state.data.ib))}<br><b>BIC:</b> ${esc((state.data.bic || '').toUpperCase())}`;
-  root.append(qrCard(payload, `${title} QR`, info));
 }
 
 function contactRow({ icon, label, value, href }) {
@@ -221,8 +247,10 @@ function qrCard(payload, label, extraNode) {
   const wrap = document.createElement('div');
   wrap.className = 'qr-card';
   const qr = document.createElement('div');
+  qr.className = 'qr-target';
+  qr.dataset.payload = payload;
   renderQr(qr, payload, { size: 512 });
-  qr.addEventListener('click', () => openQrOverlay(payload));
+  qr.addEventListener('click', () => openQrOverlay(qr.dataset.payload || payload));
   wrap.append(qr);
   if (extraNode) wrap.append(extraNode); else wrap.insertAdjacentHTML('beforeend', `<div class="qr-caption">${esc(label)}</div>`);
   return wrap;
@@ -272,7 +300,7 @@ function buildShareText() {
   if (state.activeTab === 'privat') return [d.n, d.m, d.e1, [d.s, d.z].filter(Boolean).join(', ')].filter(Boolean).join('\n');
   if (state.activeTab === 'firma') return [d.n, d.c, d.j, d.cp, d.cm, d.ce, d.w, [d.cs, d.cz].filter(Boolean).join(', ')].filter(Boolean).join('\n');
   if (state.activeTab === 'paypal') return [`Empfänger: ${d.n}`, `PayPal: ${QrPayload.paypal(d, state.amount)}`, normalizeAmount(state.amount) ? `Betrag: ${normalizeAmount(state.amount)} €` : ''].filter(Boolean).join('\n');
-  return [`Empfänger: ${d.n}`, `IBAN: ${formatIban(d.ib)}`, `BIC: ${(d.bic || '').toUpperCase()}`, normalizeAmount(state.amount) ? `Betrag: ${normalizeAmount(state.amount)} €` : '', state.purpose ? `Zweck: ${state.purpose}` : ''].filter(Boolean).join('\n');
+  return [`Empfänger: ${d.n}`, `IBAN: ${formatIban(d.ib)}`, `BIC: ${(d.bic || '').toUpperCase()}`, normalizeAmount(state.amount) ? `Betrag: ${normalizeAmount(state.amount)} €` : '', state.purpose ? `Verwendungszweck: ${state.purpose}` : ''].filter(Boolean).join('\n');
 }
 
 function openSettings() {
@@ -290,6 +318,7 @@ function openSettings() {
       <div class="settings-section"><h3>Sicherheit</h3>
         <button class="btn tonal" data-action="pin">PIN einrichten/ändern</button>
         <button class="btn tonal" data-action="passkey">Passkey / Biometrie einrichten</button>
+        <p class="muted">Passkey-Schnelllogin braucht PRF-Unterstützung vom Browser und Authenticator. Wenn das Gerät keinen Schlüssel liefert, bleibt PIN die zuverlässige Option.</p>
       </div>
       <div class="settings-section"><h3>Darstellung</h3>
         <div class="option-grid">${THEMES.map(t => `<button class="btn small tonal" data-theme-pick="${t}">${labelTheme(t)}</button>`).join('')}</div>
@@ -330,10 +359,8 @@ async function settingsClick(e) {
 async function settingsChange(e) {
   if (e.target.id === 'avatarFile' && e.target.files[0]) {
     try {
-      const avatar = await fileToDataUrl(e.target.files[0]);
-      localStorage.setItem('dv2.avatar', avatar);
-      updateAvatar();
-      toast('Profilbild gespeichert.');
+      await openAvatarCrop(e.target.files[0]);
+      e.target.value = '';
     } catch (error) { toast(error.message); }
     return;
   }
@@ -344,6 +371,42 @@ async function settingsChange(e) {
     state.token = saved.token; state.updated = saved.updated;
     closeSheet(); showLogin(); toast('Token importiert. Bitte entsperren.');
   } catch (error) { toast(error.message); }
+}
+
+async function openAvatarCrop(file) {
+  if (!file.type.startsWith('image/')) throw new Error('Bitte ein Bild auswählen.');
+  const image = await loadImageFromFile(file);
+  const crop = { zoom: 1, x: 0, y: 0 };
+  openSheet('Profilbild zuschneiden', `
+    <form id="avatarCropForm" class="avatar-crop stack">
+      <canvas id="avatarPreview" width="280" height="280" aria-label="Profilbild Vorschau"></canvas>
+      <label class="field"><span>Zoom</span><input id="avatarZoom" type="range" min="1" max="3" step="0.01" value="1"></label>
+      <label class="field"><span>Horizontal verschieben</span><input id="avatarX" type="range" min="-100" max="100" step="1" value="0"></label>
+      <label class="field"><span>Vertikal verschieben</span><input id="avatarY" type="range" min="-100" max="100" step="1" value="0"></label>
+      <div class="inline-actions">
+        <button class="btn tonal" type="button" data-close-sheet>Abbrechen</button>
+        <button class="btn primary" type="submit">Profilbild speichern</button>
+      </div>
+    </form>`);
+
+  const preview = $('#avatarPreview');
+  const drawPreview = () => drawAvatarCanvas(preview, image, crop, 280, 0.9, false);
+  $('#avatarZoom').addEventListener('input', e => { crop.zoom = Number(e.target.value); drawPreview(); });
+  $('#avatarX').addEventListener('input', e => { crop.x = Number(e.target.value); drawPreview(); });
+  $('#avatarY').addEventListener('input', e => { crop.y = Number(e.target.value); drawPreview(); });
+  $('[data-close-sheet]', $('#avatarCropForm')).addEventListener('click', closeSheet);
+  $('#avatarCropForm').addEventListener('submit', e => {
+    e.preventDefault();
+    try {
+      saveAvatarCrop(image, crop);
+      updateAvatar();
+      closeSheet();
+      toast('Profilbild gespeichert.');
+    } catch (error) {
+      toast(error.message);
+    }
+  });
+  drawPreview();
 }
 
 function openEditSheet() {
@@ -530,14 +593,49 @@ function updateAvatar() {
   }
 }
 
-function fileToDataUrl(file) {
+function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
-    if (!file.type.startsWith('image/')) return reject(new Error('Bitte ein Bild auswählen.'));
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Bild konnte nicht gelesen werden.'));
-    reader.onload = () => resolve(String(reader.result || ''));
-    reader.readAsDataURL(file);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bild konnte nicht gelesen werden.')); };
+    img.src = url;
   });
+}
+
+function saveAvatarCrop(image, crop) {
+  const sizes = [384, 320, 256, 192];
+  let lastError;
+  for (const size of sizes) {
+    try {
+      const canvas = document.createElement('canvas');
+      drawAvatarCanvas(canvas, image, crop, size, size >= 320 ? 0.84 : 0.78, true);
+      const dataUrl = canvas.toDataURL('image/webp', size >= 320 ? 0.84 : 0.78);
+      const fallback = dataUrl.startsWith('data:image/webp') ? dataUrl : canvas.toDataURL('image/jpeg', 0.82);
+      localStorage.setItem('dv2.avatar', fallback);
+      return;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw new Error(lastError?.name === 'QuotaExceededError' ? 'Profilbild ist trotz Verkleinerung zu groß für diesen Browser-Speicher.' : 'Profilbild konnte nicht gespeichert werden.');
+}
+
+function drawAvatarCanvas(canvas, image, crop, size, quality = 0.84, final = false) {
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = final ? 'high' : 'medium';
+  ctx.clearRect(0, 0, size, size);
+  const cropSize = Math.min(image.naturalWidth, image.naturalHeight) / Math.max(1, crop.zoom || 1);
+  const maxX = Math.max(0, image.naturalWidth - cropSize);
+  const maxY = Math.max(0, image.naturalHeight - cropSize);
+  const sx = clamp((image.naturalWidth - cropSize) / 2 + (crop.x || 0) / 100 * maxX / 2, 0, maxX);
+  const sy = clamp((image.naturalHeight - cropSize) / 2 + (crop.y || 0) / 100 * maxY / 2, 0, maxY);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.drawImage(image, sx, sy, cropSize, cropSize, 0, 0, size, size);
 }
 
 function buildPinPad() {
@@ -577,4 +675,5 @@ function formatDate(value) { try { return new Intl.DateTimeFormat('de-DE', { dat
 function normalizeUrl(url) { return /^https?:\/\//i.test(url) ? url : `https://${url}`; }
 function labelTheme(t) { return ({ teal: 'Teal', wald: 'Wald', ozean: 'Ozean', rose: 'Rose', lavendel: 'Lavendel', graphit: 'Graphit' })[t] || t; }
 function labelMode(m) { return ({ auto: 'Auto', light: 'Hell', dark: 'Dunkel' })[m] || m; }
+function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
 function esc(value) { return String(value ?? '').replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[ch]); }
