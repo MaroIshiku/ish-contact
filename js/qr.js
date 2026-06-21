@@ -277,19 +277,96 @@ export function renderQr(target, text, options = {}) {
   canvas.width = size; canvas.height = size;
   canvas.className = options.className || 'qr-canvas';
   const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = options.light || '#ffffff';
-  ctx.fillRect(0, 0, size, size);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if (options.light) {
+    ctx.fillStyle = options.light;
+    ctx.fillRect(0, 0, size, size);
+  } else {
+    ctx.clearRect(0, 0, size, size);
+  }
   const cells = modules.length + border * 2;
   const cell = size / cells;
-  ctx.fillStyle = options.dark || '#000000';
-  for (let r = 0; r < modules.length; r++) {
-    for (let c = 0; c < modules.length; c++) {
-      if (modules[r][c]) ctx.fillRect(Math.round((c + border) * cell), Math.round((r + border) * cell), Math.ceil(cell), Math.ceil(cell));
-    }
-  }
+  renderStyledModules(ctx, modules, cell, border, {
+    dark: options.dark || '#000000',
+    accent: options.accent || options.dark || '#000000',
+    light: options.light || 'transparent',
+    finderLight: options.finderLight || options.light || '#ffffff',
+    dense: modules.length >= 45,
+    classic: options.style === 'classic'
+  });
   target.replaceChildren(canvas);
   return canvas;
+}
+
+function renderStyledModules(ctx, modules, cell, border, palette) {
+  if (palette.classic) {
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = palette.dark;
+    for (let r = 0; r < modules.length; r++) {
+      for (let c = 0; c < modules.length; c++) {
+        if (modules[r][c]) ctx.fillRect(Math.round((c + border) * cell), Math.round((r + border) * cell), Math.ceil(cell), Math.ceil(cell));
+      }
+    }
+    return;
+  }
+
+  const n = modules.length;
+  const inset = cell * (palette.dense ? 0.18 : 0.14);
+  const finderZones = [[0, 0], [0, n - 7], [n - 7, 0]];
+  for (let r = 0; r < n; r++) {
+    let c = 0;
+    while (c < n) {
+      if (!modules[r][c] || isFinderZone(r, c, n)) { c++; continue; }
+      const start = c;
+      while (c < n && modules[r][c] && !isFinderZone(r, c, n)) c++;
+      const run = c - start;
+      ctx.fillStyle = moduleColor(r, start, palette);
+      const x = (start + border) * cell + inset;
+      const y = (r + border) * cell + inset;
+      const w = run * cell - inset * 2;
+      const h = cell - inset * 2;
+      roundRect(ctx, x, y, w, h, run > 1 ? h / 2 : h * 0.36);
+      ctx.fill();
+    }
+  }
+  for (const [row, col] of finderZones) drawFinder(ctx, row, col, cell, border, palette);
+}
+
+function drawFinder(ctx, row, col, cell, border, palette) {
+  const x = (col + border) * cell;
+  const y = (row + border) * cell;
+  const outer = cell * 7;
+  const mid = cell * 5;
+  const inner = cell * 2.25;
+  ctx.fillStyle = palette.dark;
+  roundRect(ctx, x, y, outer, outer, outer * 0.28);
+  ctx.fill();
+  ctx.fillStyle = palette.finderLight;
+  roundRect(ctx, x + cell, y + cell, mid, mid, mid * 0.34);
+  ctx.fill();
+  ctx.fillStyle = palette.dark;
+  roundRect(ctx, x + cell * 2.35, y + cell * 2.35, inner, inner, inner * 0.42);
+  ctx.fill();
+}
+
+function isFinderZone(row, col, n) {
+  return (row < 7 && col < 7) || (row < 7 && col >= n - 7) || (row >= n - 7 && col < 7);
+}
+
+function moduleColor(row, col, palette) {
+  return ((row * 17 + col * 11) % 7 === 0) ? palette.accent : palette.dark;
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + width, y, x + width, y + height, r);
+  ctx.arcTo(x + width, y + height, x, y + height, r);
+  ctx.arcTo(x, y + height, x, y, r);
+  ctx.arcTo(x, y, x + width, y, r);
+  ctx.closePath();
 }
 
 export const QrPayload = {

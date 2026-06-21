@@ -228,7 +228,7 @@ function updatePaymentPreview(kind, box, qrWrap, info) {
   $$('.chip', box).forEach(chip => chip.classList.toggle('active', normalizeAmount(state.amount) === Number(chip.dataset.amount).toFixed(2)));
   const target = $('.qr-target', qrWrap);
   target.dataset.payload = payload;
-  renderQr(target, payload, { size: 512 });
+  renderQr(target, payload, qrRenderOptions(false, 512));
   info.innerHTML = isPayPal
     ? `<b>Empfänger:</b> ${esc(state.data.n || '—')}<br><span class="link-line">${esc(link)}</span>`
     : `<b>Empfänger:</b> ${esc(state.data.n || '—')}<br><b>IBAN:</b> ${esc(formatIban(state.data.ib))}<br><b>BIC:</b> ${esc((state.data.bic || '').toUpperCase())}`;
@@ -249,7 +249,7 @@ function qrCard(payload, label, extraNode) {
   const qr = document.createElement('div');
   qr.className = 'qr-target';
   qr.dataset.payload = payload;
-  renderQr(qr, payload, { size: 512 });
+  renderQr(qr, payload, qrRenderOptions(false, 512));
   qr.addEventListener('click', () => openQrOverlay(qr.dataset.payload || payload));
   wrap.append(qr);
   if (extraNode) wrap.append(extraNode); else wrap.insertAdjacentHTML('beforeend', `<div class="qr-caption">${esc(label)}</div>`);
@@ -258,7 +258,7 @@ function qrCard(payload, label, extraNode) {
 
 async function openQrOverlay(payload) {
   const overlay = $('#qrOverlay');
-  renderQr($('#qrBig'), payload, { size: 900, className: '' });
+  renderQr($('#qrBig'), payload, qrRenderOptions(true, 900));
   overlay.classList.remove('hidden');
   try { state.wakeLock = await navigator.wakeLock?.request('screen'); } catch {}
 }
@@ -593,6 +593,20 @@ function updateAvatar() {
   }
 }
 
+function qrRenderOptions(fullscreen, size) {
+  if (fullscreen) {
+    return { size, className: '', light: '#ffffff', finderLight: '#ffffff', dark: '#17201c', accent: '#39406d', border: 5 };
+  }
+  return {
+    size,
+    light: null,
+    finderLight: cssVar('--surface-container') || '#eef4f0',
+    dark: cssVar('--primary') || '#006b5b',
+    accent: cssVar('--on-surface-variant') || '#3f4945',
+    border: 4
+  };
+}
+
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -676,4 +690,5 @@ function normalizeUrl(url) { return /^https?:\/\//i.test(url) ? url : `https://$
 function labelTheme(t) { return ({ teal: 'Teal', wald: 'Wald', ozean: 'Ozean', rose: 'Rose', lavendel: 'Lavendel', graphit: 'Graphit' })[t] || t; }
 function labelMode(m) { return ({ auto: 'Auto', light: 'Hell', dark: 'Dunkel' })[m] || m; }
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+function cssVar(name) { return getComputedStyle(document.body).getPropertyValue(name).trim(); }
 function esc(value) { return String(value ?? '').replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[ch]); }
