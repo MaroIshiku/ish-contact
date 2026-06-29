@@ -558,10 +558,18 @@ h3 {
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   box-shadow: var(--shadow-soft);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+.content-card::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .panel-head {
@@ -759,6 +767,85 @@ h3 {
   width: 20px;
   height: 20px;
   fill: currentColor;
+}
+
+.tab-firma {
+  gap: 6px;
+}
+
+.tab-firma .panel-head p {
+  margin-top: 0;
+}
+
+.tab-firma .contact-list {
+  gap: 6px;
+}
+
+.tab-firma .contact-row {
+  min-height: 42px;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+}
+
+.tab-firma .contact-row .ico {
+  width: 34px;
+  height: 34px;
+}
+
+.tab-firma .contact-row b {
+  font-size: .68rem;
+  line-height: 1.08;
+}
+
+.tab-firma .contact-row span:last-child {
+  margin-top: 0;
+  font-size: .82rem;
+  line-height: 1.12;
+}
+
+.tab-firma .qr-card.qr-share-card {
+  min-height: 106px;
+  padding: 8px;
+  gap: 2px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.tab-firma .qr-card-head h3 {
+  font-size: .82rem;
+}
+
+.tab-firma .qr-card-head {
+  display: none;
+}
+
+.tab-firma .qr-frame {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.tab-firma .qr-canvas {
+  width: min(25vw, 82px) !important;
+  height: min(25vw, 82px) !important;
+}
+
+.tab-firma .qr-caption[aria-hidden="true"] {
+  min-height: 0;
+}
+
+.tab-firma .qr-card-actions {
+  position: static;
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  transform: none;
+  gap: 6px;
+}
+
+.tab-firma .qr-icon-action {
+  min-width: 40px;
+  min-height: 40px;
 }
 
 .bottom-nav {
@@ -1396,6 +1483,79 @@ h3 {
   .qr-canvas {
     width: 190px !important;
     height: 190px !important;
+  }
+
+  .tab-firma {
+    gap: var(--space-2);
+  }
+
+  .tab-firma .panel-head p {
+    margin-top: var(--space-1);
+  }
+
+  .tab-firma .contact-list {
+    gap: var(--space-2);
+  }
+
+  .tab-firma .contact-row {
+    min-height: 56px;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+  }
+
+  .tab-firma .contact-row .ico {
+    width: 40px;
+    height: 40px;
+  }
+
+  .tab-firma .contact-row b {
+    font-size: var(--type-label-medium-size);
+    line-height: var(--type-label-medium-line);
+  }
+
+  .tab-firma .contact-row span:last-child {
+    margin-top: 1px;
+    font-size: var(--type-body-medium-size);
+    line-height: var(--type-body-medium-line);
+  }
+
+  .tab-firma .qr-card.qr-share-card {
+    min-height: 320px;
+    padding: var(--space-3);
+    gap: var(--space-2);
+    grid-template-columns: none;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .tab-firma .qr-card-head h3 {
+    font-size: var(--type-label-large-size);
+  }
+
+  .tab-firma .qr-card-head {
+    display: block;
+  }
+
+  .tab-firma .qr-canvas {
+    width: 190px !important;
+    height: 190px !important;
+  }
+
+  .tab-firma .qr-caption[aria-hidden="true"] {
+    min-height: 28px;
+  }
+
+  .tab-firma .qr-card-actions {
+    position: absolute;
+    right: var(--space-3);
+    top: 50%;
+    transform: translateY(-50%);
+    gap: var(--space-2);
+  }
+
+  .tab-firma .qr-icon-action {
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
   }
 
   .bottom-nav {
