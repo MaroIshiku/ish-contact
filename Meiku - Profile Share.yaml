@@ -46,7 +46,7 @@ services:
     image: ghcr.io/maroishiku/meiku:latest
     init: true
     labels:
-      icon: https://raw.githubusercontent.com/MaroIshiku/meiku/main/assets/meiku-icon-512-20260628.png
+      icon: https://raw.githubusercontent.com/MaroIshiku/meiku/main/assets/meiku-icon-512-20260629.png
       org.opencontainers.image.description: Private encrypted profile, contact and payment QR vault with local QR generation.
       org.opencontainers.image.source: https://github.com/MaroIshiku/meiku
       org.opencontainers.image.title: Meiku - Profile Share
@@ -94,7 +94,7 @@ x-casaos:
     en_us: Mobile-first PWA for encrypted private and business profile cards. The server stores only the encrypted token; QR codes and encryption run locally in the browser.
   developer: MaroIshiku
   hostname: ""
-  icon: https://raw.githubusercontent.com/MaroIshiku/meiku/main/assets/meiku-icon-512-20260628.png
+  icon: https://raw.githubusercontent.com/MaroIshiku/meiku/main/assets/meiku-icon-512-20260629.png
   index: /
   is_uncontrolled: false
   main: Meiku
@@ -104,7 +104,7 @@ x-casaos:
   tagline:
     de_de: Privater verschluesselter Profil-, Kontakt- und Zahlungs-QR-Tresor.
     en_us: Private encrypted profile, contact and payment QR vault.
-  thumbnail: https://raw.githubusercontent.com/MaroIshiku/meiku/main/assets/meiku-icon-512-20260628.png
+  thumbnail: https://raw.githubusercontent.com/MaroIshiku/meiku/main/assets/meiku-icon-512-20260629.png
   tips:
     before_install:
       de_de: >

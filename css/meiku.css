@@ -528,9 +528,15 @@ h3 {
 }
 
 .avatar-wrap img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  max-width: none;
+  border-radius: inherit;
+  clip-path: circle(50% at 50% 50%);
   object-fit: cover;
+  object-position: center;
 }
 
 .avatar-wrap span {
@@ -870,6 +876,7 @@ h3 {
 .profile-avatar img,
 .profile-avatar > span:first-child {
   border-radius: var(--radius-pill);
+  clip-path: circle(50% at 50% 50%);
   overflow: hidden;
 }
 
@@ -1183,7 +1190,8 @@ h3 {
   display: grid;
   place-items: center;
   padding: var(--space-5);
-  background: var(--color-surface);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--color-primary-container) 72%, var(--color-surface)) 0%, var(--color-surface) 48%, color-mix(in srgb, var(--color-tertiary-container) 42%, var(--color-surface)) 100%);
 }
 
 .qr-overlay .close {
@@ -1194,18 +1202,47 @@ h3 {
 
 .qr-big {
   width: min(92vw, 460px);
+  max-height: min(82dvh, 560px);
   aspect-ratio: 1;
-  padding: var(--space-4);
-  border-radius: var(--radius-xl);
+  padding: clamp(18px, 5vw, 34px);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--color-outline));
+  border-radius: calc(var(--radius-xl) + 10px);
   display: grid;
   place-items: center;
-  background: var(--color-surface);
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 78%, var(--color-primary-container)), #fffaff);
+  box-shadow:
+    0 26px 80px color-mix(in srgb, var(--color-primary) 24%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #ffffff 92%, transparent);
+}
+
+.qr-big::before {
+  content: "";
+  position: absolute;
+  inset: clamp(8px, 2.2vw, 14px);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+  border-radius: calc(var(--radius-xl) + 2px);
+  pointer-events: none;
 }
 
 .qr-big canvas {
   width: 100% !important;
   height: 100% !important;
-  image-rendering: pixelated;
+  image-rendering: auto;
+}
+
+.qr-big .qr-canvas-fullscreen {
+  position: relative;
+  z-index: 1;
+  padding: clamp(10px, 2.6vw, 18px);
+  border: 0;
+  border-radius: calc(var(--radius-xl) + 2px);
+  background: #fffaff;
+  box-shadow:
+    0 14px 38px color-mix(in srgb, var(--color-primary) 18%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 
 .toast {

@@ -1,7 +1,7 @@
-import { Auth } from './auth.js?v=meiku-20260628';
-import { decryptJson, encryptJson } from './crypto.js?v=meiku-20260628';
-import { formatIban, formatIbanRaw, normalizeAmount, QrPayload, renderQr } from './qr.js?v=meiku-20260628';
-import { Store } from './store.js?v=meiku-20260628';
+import { Auth } from './auth.js?v=meiku-20260629';
+import { decryptJson, encryptJson } from './crypto.js?v=meiku-20260629';
+import { formatIban, formatIbanRaw, normalizeAmount, QrPayload, renderQr } from './qr.js?v=meiku-20260629';
+import { Store } from './store.js?v=meiku-20260629';
 
 const FIELDS = [
   ['n', 'Vollständiger Name', 'text', true], ['m', 'Privat-Handy', 'tel'], ['e1', 'Privat-E-Mail', 'email'],
@@ -725,7 +725,15 @@ function updateAvatar() {
 
 function qrRenderOptions(fullscreen, size) {
   if (fullscreen) {
-    return { size, className: '', light: '#ffffff', finderLight: '#ffffff', dark: '#000000', accent: '#000000', border: 6, style: 'classic' };
+    return {
+      size,
+      className: 'qr-canvas qr-canvas-fullscreen',
+      light: '#fffaff',
+      finderLight: '#fffaff',
+      dark: '#24113f',
+      accent: '#6f55c8',
+      border: 6
+    };
   }
   return {
     size,
